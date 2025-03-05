@@ -1,23 +1,25 @@
 FROM debian:bookworm-slim AS builder
-RUN apt update \
-    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends tzdata \
-    && ln -fs /usr/share/zoneinfo/Europe/Berlin /etc/localtime \
-    && dpkg-reconfigure --frontend noninteractive tzdata
-RUN apt install -y \
+RUN apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y \
     build-essential \
     git \
-    libgnustep-base-dev \
-    libmariadb-dev-compat \
-    libxml2-dev \
-    libldap2-dev \
-    libpq-dev \
-    libcurl4-openssl-dev \
-    libmemcached-dev \
-    libsodium-dev \
-    libzip-dev \
-    libytnef0-dev \
     gnutls-dev \
-    libssl-dev
+    libcurl4-openssl-dev \
+    libgnustep-base-dev \
+    libldap2-dev \
+    libmariadb-dev-compat \
+    libmemcached-dev \
+    libpq-dev \
+    libsodium-dev \
+    libssl-dev \
+    libxml2-dev \
+    libytnef0-dev \
+    libzip-dev \
+    tzdata \
+    && ln -fs /usr/share/zoneinfo/Australia/Adelaide /etc/localtime \
+    && dpkg-reconfigure --frontend noninteractive tzdata
+
+
 WORKDIR /usr/src/app
 COPY versions.yaml .
 RUN git clone --depth 1 --branch $(grep "sope_git_tag" versions.yaml | cut -d" " -f2) https://github.com/inverse-inc/sope.git \
@@ -27,17 +29,21 @@ RUN git clone --depth 1 --branch $(grep "sogo_git_tag" versions.yaml | cut -d" "
 
 
 FROM debian:bookworm-slim
-RUN apt update \
-    && apt install -y --no-install-recommends \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     gnustep-base-runtime \
-    libmemcached-tools libzip4 libytnef0 libsodium23 libldap-2.5-0 libcurl4 libmariadb3 \
-    nginx \
+    libcurl4 \
+    libldap-2.5-0 \
+    libmariadb3 \
+    libmemcached-tools \
+    libsodium23 \
+    libytnef0 \
+    libzip4 \
     memcached \
-    sudo \
+    nginx \
     procps \
-    && rm -rf /var/lib/apt/lists/*
+    sudo 
+
 COPY --from=builder /usr/local /usr/local
-COPY sogo-conf/sogo.conf /etc/sogo/
 COPY artifacts/sogo-backup.sh /usr/local/share/doc/sogo/
 COPY artifacts/sogo.cron /etc/cron.d/
 COPY artifacts/sogod.sh /usr/local/bin/
