@@ -35,6 +35,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     libldap-2.5-0 \
     libmariadb3 \
     libmemcached-tools \
+    libpq5 \
     libsodium23 \
     libytnef0 \
     libzip4 \
